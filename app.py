@@ -4,11 +4,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 # Email configuration
 SMTP_SERVER = "smtp.gmail.com"
