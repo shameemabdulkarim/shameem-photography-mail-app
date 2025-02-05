@@ -10,13 +10,33 @@ from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "https://your-photography-site.com", #To be changed after deploying the photography app
+                "http://localhost:3000" ,# For development
+                "http://127.0.0.1:5000"
+            ]
+        }
+    }
+)
 
 # Email configuration
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_USERNAME = os.getenv("EMAIL_USERNAME")
 SMTP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
+
+# Middleware to verify API key
+def require_api_key(view_function):
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get('x-api-key')
+        if api_key and api_key == os.getenv('API_KEY'):
+            return view_function(*args, **kwargs)
+        return jsonify({"error": "Unauthorized"}), 401
+    return decorated_function
 
 def send_email(to_email, subject, body):
   try:
@@ -45,6 +65,7 @@ def home():
   return "Email Service is Running!"
 
 @app.route("/send-email", methods=["POST"])
+@require_api_key
 def send_email_endpoint():
   data = request.get_json()
 
